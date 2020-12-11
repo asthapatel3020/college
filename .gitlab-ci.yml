@@ -1,0 +1,312 @@
+---
+.common_variables: &common_variables
+  OrgName: "solvitude"
+  ServiceStack: "danford"
+  AppName: "frontend"  # Application Service Name
+  ContainerPort: 3000 # Container port exposed for service
+  DOCKER_TLS_CERTDIR: ""
+
+.nonprod_variables: &nonprod_variables
+  AWS_ASSUME_ROLE_ARN: "arn:aws:iam::${AWS_NONPROD_ACCOUNT}:role/DevopsToolAssumeRole"
+  AWS_ROLE_SESION_NAME: "DevopsDeploy"
+  DOCKER_REGISTRY: ${AWS_NONPROD_ACCOUNT}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
+
+.prod_variables: &prod_variables
+  AWS_ASSUME_ROLE_ARN: "arn:aws:iam::${AWS_PROD_ACCOUNT}:role/DevopsToolAssumeRole"
+  AWS_ROLE_SESION_NAME: "DevopsDeploy"
+  DOCKER_REGISTRY: ${AWS_PROD_ACCOUNT}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
+
+.ecs_dev_variables: &ecs_dev_variables
+  LoadBalancerDeregistrationDelay: 30 # Target deregistration delay in seconds Default is 60.
+  TaskCPU: "256"  # Task CPU configuration
+  TaskMemory: "2048"  # Task Memory configuratio
+  MinContainersTasks: 1   # Minimum number of ECS tasks per ECS service
+  DesiredContainersTasks: 1   # Desired number of ECS tasks per ECS service
+  MaxContainersTasks: 2   # Maximum number of ECS tasks per ECS service
+  AutoScalingCPUTargetValue: 90    # Target CPU utilization (%) for ECS services auto scaling
+  AutoScalingMemoryTargetValue: 90   # Target Memory utilization (%) for ECS services auto scaling
+  LogsRetentionInDays: 7   # No of days to retain logs in cloudwatch
+  VPCEnvironment: "nonprod"   # nonprod or prod
+  Environment: "dev"  # dev or test or prod
+  ECS_Rolling_Update: 'false'    # Ttrue or false. Set it to true for rolling update without any outage. Setting it to false, would deploy the service with outage.
+  ECS_Rolling_Update_Timeout: 900    # Timeout for ECS service  rolling update, post which it wil be rolled back to previous version of image
+  PowerMgmt: "IBHW.0.1.1.2" # PowerMgmt.Down.Desired.Min.Max  IBH: 7AM to 12AM AEST weekdays, MBH: 7AM to 7PM AEST weekdays, 24X7: No PowerManagement, IBHW and MBHW to include weekends
+  LoadBalancerDomainName: dev.nonprod.solvitude.com.au # Load Balancer Domain Name to be specified. This will be used in creating the certificate using ACM.
+  CertificateValidationDomain: solvitude.com.au # Certificate Validation Domain Name to be specified. This will be used in validating the domain name for requesting certificate.
+  SubDomainNameWithDot: dev. # Name that is used to create the DNS entry with trailing dot, e.g. §{SubDomainNameWithDot}§{HostedZoneName}. Leave blank for naked (or apex and bare) domain. Requires ParentZoneStack parameter!
+
+.ecs_test_variables: &ecs_test_variables
+  LoadBalancerDeregistrationDelay: 30 # Target deregistration delay in seconds Default is 60.
+  TaskCPU: "256"  # Task CPU configuration
+  TaskMemory: "2048"  # Task Memory configuratio
+  MinContainersTasks: 1   # Minimum number of ECS tasks per ECS service
+  DesiredContainersTasks: 1   # Desired number of ECS tasks per ECS service
+  MaxContainersTasks: 5   # Maximum number of ECS tasks per ECS service
+  AutoScalingCPUTargetValue: 90    # Target CPU utilization (%) for ECS services auto scaling
+  AutoScalingMemoryTargetValue: 90   # Target Memory utilization (%) for ECS services auto scaling
+  LogsRetentionInDays: 7   # No of days to retain logs in cloudwatch
+  VPCEnvironment: "nonprod"   # nonprod or prod
+  Environment: "test"  # dev or test or prod
+  ECS_Rolling_Update: 'true'    # Ttrue or false. Set it to true for rolling update without any outage. Setting it to false, would deploy the service with outage.
+  ECS_Rolling_Update_Timeout: 900    # Timeout for ECS service  rolling update, post which it wil be rolled back to previous version of image
+  PowerMgmt: "IBHW.0.1.1.5" # PowerMgmt.Down.Desired.Min.Max  IBH: 7AM to 12AM AEST weekdays, MBH: 7AM to 7PM AEST weekdays, 24X7: No PowerManagement, IBHW and MBHW to include weekends
+  LoadBalancerDomainName: test.nonprod.solvitude.com.au # Load Balancer Domain Name to be specified. This will be used in creating the certificate using ACM.
+  CertificateValidationDomain: solvitude.com.au # Certificate Validation Domain Name to be specified. This will be used in validating the domain name for requesting certificate.
+  SubDomainNameWithDot: test. # Name that is used to create the DNS entry with trailing dot, e.g. §{SubDomainNameWithDot}§{HostedZoneName}. Leave blank for naked (or apex and bare) domain. Requires ParentZoneStack parameter!
+
+
+.ecs_prod_variables: &ecs_prod_variables
+  LoadBalancerDeregistrationDelay: 30 # Target deregistration delay in seconds Default is 60.
+  TaskCPU: "256"  # Task CPU configuration
+  TaskMemory: "2048"  # Task Memory configuratio
+  MinContainersTasks: 2   # Minimum number of ECS tasks per ECS service
+  DesiredContainersTasks: 2   # Desired number of ECS tasks per ECS service
+  MaxContainersTasks: 5   # Maximum number of ECS tasks per ECS service
+  AutoScalingCPUTargetValue: 90    # Target CPU utilization (%) for ECS services auto scaling
+  AutoScalingMemoryTargetValue: 90   # Target Memory utilization (%) for ECS services auto scaling
+  LogsRetentionInDays: 7   # No of days to retain logs in cloudwatch
+  VPCEnvironment: "prod"   # nonprod or prod
+  Environment: "prod"  # dev or test or prod
+  ECS_Rolling_Update: 'true'    # Ttrue or false. Set it to true for rolling update without any outage. Setting it to false, would deploy the service with outage.
+  ECS_Rolling_Update_Timeout: 900    # Timeout for ECS service  rolling update, post which it wil be rolled back to previous version of image
+  PowerMgmt: "24X7" # PowerMgmt.Down.Desired.Min.Max  IBH: 7AM to 12AM AEST weekdays, MBH: 7AM to 7PM AEST weekdays, 24X7: No PowerManagement, IBHW and MBHW to include weekends
+  LoadBalancerDomainName: solvitude.com.au # Load Balancer Domain Name to be specified. This will be used in creating the certificate using ACM.
+  CertificateValidationDomain: solvitude.com.au # Certificate Validation Domain Name to be specified. This will be used in validating the domain name for requesting certificate.
+  SubDomainNameWithDot: '' # Name that is used to create the DNS entry with trailing dot, e.g. §{SubDomainNameWithDot}§{HostedZoneName}. Leave blank for naked (or apex and bare) domain. Requires ParentZoneStack parameter!
+
+default:
+  before_script:
+    - 'curl -L -o master-infra.zip -H "PRIVATE-TOKEN: $MASTER_INFRA_API_TOKEN" "https://gitlab.com/api/v4/projects/22875870/jobs/artifacts/develop/download?job=validate-templates"'
+    - unzip master-infra.zip
+    - source scripts/assume_role.sh ${AWS_ASSUME_ROLE_ARN} ${AWS_ROLE_SESION_NAME}
+
+.build_before_script: &build_before_script
+  before_script:
+    - 'amazon-linux-extras install docker > /dev/null'
+    - 'yum install -y install unzip > /dev/null'
+    - aws --version
+    - docker --version
+    - 'curl -L -o master-infra.zip --header "PRIVATE-TOKEN: $MASTER_INFRA_API_TOKEN" "https://gitlab.com/api/v4/projects/22875870/jobs/artifacts/develop/download?job=validate-templates"'
+    - unzip master-infra.zip
+    - source scripts/assume_role.sh ${AWS_ASSUME_ROLE_ARN} ${AWS_ROLE_SESION_NAME}
+
+.ecr_build_script: &ecr_build_script
+  script: |
+    ECRRepoName="${ServiceStack}/${AppName}"
+    aws ecr describe-repositories --region ${AWS_DEFAULT_REGION} --repository-names ${ECRRepoName} || aws ecr create-repository --region ${AWS_DEFAULT_REGION} --repository-name ${ECRRepoName}
+    IMAGE_STATUS="AVAILABLE"
+    aws ecr describe-images --repository-name=${ECRRepoName} --image-ids=imageTag=$CI_COMMIT_SHA > /dev/null || IMAGE_STATUS="NOT_AVAILABLE"
+    if [ $IMAGE_STATUS == "AVAILABLE" ];then
+      echo "Image $ECRRepoName:$CI_COMMIT_SHA is already built and present in ECR. Skipping image build.."
+    else
+      echo "Image $ECRRepoName:$CI_COMMIT_SHA will be built and pushed to ECR.."
+      docker build -t $DOCKER_REGISTRY/$ECRRepoName:$CI_COMMIT_SHA . 
+      aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin $DOCKER_REGISTRY
+      docker push $DOCKER_REGISTRY/$ECRRepoName:$CI_COMMIT_SHA
+    fi
+
+.ecs_deploy_script: &ecs_deploy_script
+  script:
+    - >
+      ECRRepoName="${ServiceStack}/${AppName}"
+
+      source scripts/ecr_update_image.sh ${Environment} ${ECRRepoName} ${CI_COMMIT_SHA}
+      
+      aws cloudformation deploy --stack-name ${ServiceStack}-${Environment}-${AppName} --template-file cf-templates/ecs_service_fargate_frontend.yml 
+      --parameter-overrides 
+      ParentVPCStack="${ServiceStack}-${VPCEnvironment}-network" 
+      ParentZoneStack="${ServiceStack}-${VPCEnvironment}-route53-zone" 
+      ParentSNSStack="${ServiceStack}-${Environment}-alerts" 
+      ParentKMSStack="${ServiceStack}-${Environment}-kms" 
+      AppName=${AppName} 
+      Stage=${Environment} 
+      PowerMgmt=${PowerMgmt} 
+      ContainerImagePath="${DOCKER_REGISTRY}/${ServiceStack}/${AppName}:latest-${Environment}" 
+      ContainerPort=${ContainerPort} 
+      LoadBalancerDeregistrationDelay=${LoadBalancerDeregistrationDelay} 
+      LoadBalancerDomainName=${LoadBalancerDomainName} 
+      CertificateValidationDomain=${CertificateValidationDomain} 
+      SubDomainNameWithDot=${SubDomainNameWithDot} 
+      TaskCPU=${TaskCPU} 
+      TaskMemory=${TaskMemory} 
+      MinContainersTasks=${MinContainersTasks} 
+      DesiredContainersTasks=${DesiredContainersTasks} 
+      MaxContainersTasks=${MaxContainersTasks} 
+      AutoScalingCPUTargetValue=${AutoScalingCPUTargetValue} 
+      AutoScalingMemoryTargetValue=${AutoScalingMemoryTargetValue} 
+      LogsRetentionInDays=${LogsRetentionInDays} 
+      --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM 
+      --no-fail-on-empty-changeset 
+      --tags organisation=${OrgName} ServiceStack=${ServiceStack} Environment=${Environment} AppName=${AppName}
+      
+      ecs_cluster=`aws cloudformation describe-stacks --stack-name ${ServiceStack}-${Environment}-${AppName} --query "Stacks[0].Outputs[?OutputKey=='ECSCluster'].OutputValue" --output text`
+
+      ecs_service=`aws cloudformation describe-stacks --stack-name ${ServiceStack}-${Environment}-${AppName} --query "Stacks[0].Outputs[?OutputKey=='ECSService'].OutputValue" --output text`
+
+      echo "ECS: Initializing update on ECS Service.."
+
+      source scripts/ecs_rolling_update.sh ${Environment} ${ECRRepoName} ${CI_COMMIT_SHA} ${ecs_cluster} ${ecs_service} ${ECS_Rolling_Update_Timeout} ${ECS_Rolling_Update}
+
+.ecs_delete_script: &ecs_delete_script
+  script:
+    - >
+      aws cloudformation delete-stack --stack-name ${ServiceStack}-${Environment}-${AppName}
+      
+      aws cloudformation wait stack-delete-complete --stack-name ${ServiceStack}-${Environment}-${AppName}
+  
+cache:
+  paths:
+  - node_modules/
+
+stages:
+  - build
+  - deploy
+  - delete
+
+# unit_test:
+#   image: node
+#   stage: test
+#   variables:
+#     NODE_ENV: test
+#   before_script:
+#     # Install yarn
+#    - yarn
+#  script:
+#     - yarn test
+#     - yarn run prettier --list-different
+
+build-dev:
+  image: 
+    name: amazon/aws-cli
+    entrypoint: [""]
+  stage: build
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    <<: *common_variables
+    <<: *nonprod_variables
+    <<: *ecs_dev_variables
+  services:
+    - docker:dind
+  <<: *build_before_script
+  <<: *ecr_build_script
+  only:
+    - develop
+
+build-test:
+  image: 
+    name: amazon/aws-cli
+    entrypoint: [""]
+  stage: build
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    <<: *common_variables
+    <<: *nonprod_variables
+    <<: *ecs_dev_variables
+  services:
+    - docker:dind
+  <<: *build_before_script
+  <<: *ecr_build_script
+  when: manual
+  only:
+    - test
+
+build-prod:
+  image: 
+    name: amazon/aws-cli
+    entrypoint: [""]
+  stage: build
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    <<: *common_variables
+    <<: *nonprod_variables
+    <<: *ecs_dev_variables
+  services:
+    - docker:dind
+  <<: *build_before_script
+  <<: *ecr_build_script
+  when: manual
+  only:
+    - /^release-.*$/i
+    - /^hotfix-.*$/i
+    - master
+
+deploy-dev:
+  image: registry.gitlab.com/gitlab-org/cloud-deploy/aws-base:latest
+  stage: deploy
+  variables:
+    <<: *common_variables
+    <<: *nonprod_variables
+    <<: *ecs_dev_variables
+  <<: *ecs_deploy_script
+  environment: ${Environment}
+  only:
+    - develop
+
+deploy-test:
+  image: registry.gitlab.com/gitlab-org/cloud-deploy/aws-base:latest
+  stage: deploy
+  variables:
+    <<: *common_variables
+    <<: *nonprod_variables
+    <<: *ecs_test_variables
+  <<: *ecs_deploy_script
+  environment: ${Environment}
+  when: manual
+  only:
+    - test
+
+deploy-prod:
+  image: registry.gitlab.com/gitlab-org/cloud-deploy/aws-base:latest
+  stage: deploy
+  variables:
+    <<: *common_variables
+    <<: *prod_variables
+    <<: *ecs_prod_variables
+  <<: *ecs_deploy_script
+  environment: ${Environment}
+  when: manual
+  only:
+    - /^release-.*$/i
+    - /^hotfix-.*$/i
+    - master
+
+delete-dev:
+  image: registry.gitlab.com/gitlab-org/cloud-deploy/aws-base:latest
+  stage: delete
+  variables:
+    <<: *common_variables
+    <<: *nonprod_variables
+    <<: *ecs_dev_variables
+  <<: *ecs_delete_script
+  environment: ${Environment}
+  when: manual
+  only:
+    - master
+
+delete-test:
+  image: registry.gitlab.com/gitlab-org/cloud-deploy/aws-base:latest
+  stage: delete
+  variables:
+    <<: *common_variables
+    <<: *nonprod_variables
+    <<: *ecs_dev_variables
+  <<: *ecs_delete_script
+  environment: ${Environment}
+  when: manual
+  only:
+    - master
+
+delete-prod:
+  image: registry.gitlab.com/gitlab-org/cloud-deploy/aws-base:latest
+  stage: delete
+  variables:
+    <<: *common_variables
+    <<: *prod_variables
+    <<: *ecs_prod_variables
+  <<: *ecs_delete_script
+  environment: ${Environment}
+  when: manual
+  only:
+    - /^release-.*$/i
+    - /^hotfix-.*$/i
+    - master

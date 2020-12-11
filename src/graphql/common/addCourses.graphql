@@ -1,0 +1,22 @@
+mutation addCourse(
+	$campusList: [String]!
+	$courseCode: String!
+	$courseName: String!
+	$courseHours: String!
+	$cricosCode: String!
+	$courseGroup: String!
+	$courseEndDate: String!
+) {
+	createCourse(
+		campusList: $campusList
+		courseCode: $courseCode
+		courseName: $courseName
+		courseHours: $courseHours
+		cricosCode: $cricosCode
+		courseGroup: $courseGroup
+		courseEndDate: $courseEndDate
+	) {
+		courseId
+		courseName
+	}
+}

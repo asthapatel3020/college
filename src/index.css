@@ -1,0 +1,96 @@
+@font-face {
+  font-family: 'Merriweather';
+  src: local('Merriweather'), url('./assets/fonts/Merriweather-Light.ttf') format('ttf');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Merriweather-Regular';
+  src: local('Merriweather-Regular'), url('./assets/fonts/Merriweather-Regular.ttf') format('ttf');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Merriweather-Bold';
+  src: local('Merriweather-Bold'), url('./assets/fonts/Merriweather-Bold.ttf') format('ttf');
+  font-weight: 400;
+  font-style: normal;
+}
+
+
+@font-face {
+  font-family: 'Lato-Regular';
+  src: local('Lato-Regular'), url('./assets/fonts/Lato-Regular.ttf') format('ttf');
+  font-weight: bold;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Lato-Light';
+  src: local('Lato-Light'), url('./assets/fonts/Lato-Light.ttf') format('ttf');
+  font-weight: normal;
+  font-style: normal;
+}
+
+html, body, #root, #root>div {
+  height: 100%
+}
+
+body {
+  margin: 0;
+  background: '#E5E5E5';
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+::-webkit-scrollbar {
+  display: none;
+}
+
+.copyRight{
+  font-family: "Merriweather";
+  font-style: normal;
+  font-weight: normal;
+  font-size: 12px;
+  line-height: 22px;
+  color: #607D8B;
+  mix-blend-mode: normal;
+}
+
+table{
+  border: 0px solid #000000;
+  padding: 20px;
+  background: transparent;
+  color: #ffffff;
+  border-left: none;
+}
+
+table thead tr th:first-child {
+  border-radius: 10px 0 0 0px;
+}
+
+table thead tr th:last-child {
+  border-radius: 0 10px 0px 0px;
+}
+
+table tbody tr td:first-child {
+  border-radius: 10px 0 0 10px;
+}
+
+table tbody tr td:last-child {
+  border-radius: 0 10px 10px 0px;
+}
+
+.MuiTableCell-root:first-child {
+  border-radius: 10px 0 0 10px;
+}

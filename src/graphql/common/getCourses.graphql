@@ -1,0 +1,20 @@
+query courses($campusId: String!) {
+	searchCampusCourses(campusId: $campusId) {
+		courseList {
+			courseId
+			courseCode
+			courseName
+			courseCode
+			courseGroup
+			campusList {
+				campusId
+				courseHours
+				courseEndDate
+			}
+			auditDetails {
+				createdAt
+				updatedAt
+			}
+		}
+	}
+}

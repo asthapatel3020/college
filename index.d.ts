@@ -1,0 +1,7 @@
+declare module '*.jpg'
+declare module '*.png'
+declare module '*.graphql'
+declare module '*.jpg'
+declare module '*.png'
+declare module '*.graphql'
+// declare module 'lodash'
